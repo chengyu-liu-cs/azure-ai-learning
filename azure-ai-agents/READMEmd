@@ -1,0 +1,30 @@
+# Azure-ai-foundry-agent service 
+
+It uses a schema to define an agent
+`$schema=https://aka.ms/ai-foundry-vsc/agent/1.0.0`
+
+
+# AI Agent SDKs
+
+```bash
+#Azure AI Agents SDK: 
+pip install azure-ai-agents --extra-index-url https://pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-python/pypi/simple --pre  
+
+#Azure AI Projects SDK: 
+pip install "azure-ai-projects>=1.0.0a,<1.0.0b1" --force-reinstall  --extra-index-url https://pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-python/pypi/simple --pre 
+
+```
+
+# Example use case
+prompts
+```markdown
+I would like to create a web app where a user can customize their interests by specifying following drop-down items:
+- Select an industry (you can choose the most common 5 industries)
+- Select a customer/company (you can pre-configure 10 most popular companies for each industry you choose above).
+- Recency (you predefine, eg., last a month, last 3 months, last 6 months and 12 months)
+- Free text box where a user can describe their interests. It could be related to the companies or industries.
+
+Once the user provides information and select items, then the request will be handled by an Azure AI Agent which would handle the request. 
+
+Please help with initial end to end implemnetation with python. 
+```

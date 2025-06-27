@@ -3,6 +3,8 @@
 # Azure AI Learning Notes
 ## Auzre AI Foundry 
 
+It seems agents cannot have both BingSearchGrounding and BingCustomSearchGrounding at the same time.
+
 ### Update announcement 
 - [2025-05-27 Introducing New Tools and Features in the Responses API in Azure AI Foundry](https://devblogs.microsoft.com/foundry/introducing-new-tools-and-features-in-the-responses-api-in-azure-ai-foundry/)
 ]

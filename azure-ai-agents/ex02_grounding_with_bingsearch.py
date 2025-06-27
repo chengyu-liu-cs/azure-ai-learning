@@ -19,6 +19,18 @@ USAGE:
     AZURE_AI_FOUNDRY_PROJECT_ENDPOINT - the Azure AI Project endpoint, as found in your AI Studio Project.
     BING_CONNECTION_ID - the connection ID for the Bing Grounding tool.
     AZURE_AI_FOUNDRY_MODEL_DEPLOYMENT_NAME - the deployment name of the AI model.
+
+Findings & Open questions:
+
+    In the GroundingwithBingTool, when I checked the run information from AI Foundry Playground, somehow "market" is set to sv-SE, which is not the value specified in the instantiated.
+        bing = BingGroundingTool(connection_id=bing_conn_id, freshness="day", count=5, set_lang="en", market="us")
+        This is the output I got from the Playground:
+            bing_grounding: {
+                requesturl: "https://api.bing.microsoft.com/v7.0/search?q=search(query: "latest Microsoft news June 2025 significant business impact")"
+                response_metadata: "{'market': 'sv-SE', 'num_docs_retrieved': 5, 'num_docs_actually_used': 5}"
+            }
+
+    Not sure how to specify query parameters. User query to the agent is re-fomulated to a Bing search query (requesturl: "https://api.bing.microsoft.com/v7.0/search?q=search(query: "......").
 """
 
 # Import necessary libraries and modules
@@ -26,7 +38,6 @@ import os
 from azure.identity import DefaultAzureCredential
 from azure.ai.agents import AgentsClient
 from azure.ai.agents.models import MessageRole, BingGroundingTool
-from azure.ai.projects import AIProjectClient
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -106,7 +117,7 @@ with agents_client:
         print(f"Step {step['id']} status: {step['status']}")
         step_details = step.get("step_details", {})
         tool_calls = step_details.get("tool_calls", [])
-
+        
         if tool_calls:
             print("  Tool calls:")
             for call in tool_calls:
