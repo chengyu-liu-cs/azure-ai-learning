@@ -15,6 +15,90 @@ pip install "azure-ai-projects>=1.0.0a,<1.0.0b1" --force-reinstall  --extra-inde
 
 ```
 
+# MCP  
+## MCP Server Setup
+```bash
+pip install mcp[cli]
+```
+- Run MCP Inspector with below command
+- Open the link in the console that has a URL with prefilled tokens and hosts
+```bash
+npx @modelcontextprotocol/inspector
+```
+
+In another terminal, run the mcp server, e.g.,: (different transport can be used such as `streamable-http`, `studio`)
+```bash
+mcp run mcp_server.py --transport=sse 
+# or
+python mcp_server.py
+```
+>Note: Streamable HTTP transport is superseding SSE transport for production deployments.
+
+Go to the inspector UI that was opened in from the previous step, select the right transport type and use the write mcp server URL shown in mcp server console.
+
+>Note: When `sse` is used for transport type, the url should be like `http://127.0.0.1:8000/sse`. But for `"streamable-http"`, the url should be like `http://127.0.0.1:8000/mcp` instead of `http://127.0.0.1:8000/streamable-http`
+>By default, SSE servers are mounted at /sse and Streamable HTTP servers are mounted at /mcp. You can customize these paths using the methods described below.
+
+## Build a MCP Server
+Example can be found here https://github.com/Azure-Samples/ai-foundry-agents-samples/tree/main/examples/mcp
+
+## Deploy to an Azure Container App
+
+Change the folder to `mcp` folder first and run below with right values.
+
+>Note: `az containerapp up` will create required resources such as Container App Environment, Azure Container Registry, and Azure Log Analytics 
+```bash
+RESOURCE_GROUP_NAME="rg-aiagent-tools"
+SUBSCRIPTION_ID="<SUBSCRIPTION_ID>"
+REGION="swedencentral"
+
+az containerapp up \
+    --resource-group $RESOURCE_GROUP_NAME \
+    --name streamable-sample-mcp \
+    --environment mcp \
+    --location $REGION \
+    --source .
+```
+
+Above command will deploy a container app and there will be a public url which can be used in `@modelcontextprotocol/inspector`. 
+>Note: Azure Container App will use 80 or 443 regardless the port that is specified/exposed in `FastMCP` or `Dockerfile` 
+- A port specified in application like 8001 is used as the "application port" inside the container.
+- Azure Container Apps ingress
+    
+    - When you create an ACA with ingress: external: true, you tell ACA, "accept HTTP/S on the default ports (80/443) and forward traffic into my container."
+    - In your ACA spec you map traffic on port 80 (and 443 for TLS) to the container’s port 8001. For example, in your Bicep/ARM/YAML you’d include something like:
+        ```yaml
+        properties:
+            configuration:
+                ingress:
+                external: true
+                targetPort: 8001
+                transport: auto
+        ```
+    - ACA then listens on 80/443 publicly, and under the covers does a 80 → 8001 (and 443 → 8001) TCP proxy into your container.
+- What your clients (and Inspector) use
+    - From outside, you hit https://<your-app>.<region>.azurecontainerapps.io/mcp (port 443) or HTTP on port 80 if you disable TLS.
+    - You never type :8001 in the public URL—ACA already routes 80/443 to your container’s 8001.
+    - In @modelcontextprotocol/inspector’s config you’d simply point at
+        ```yaml
+        {
+            "servers": {
+                "weather": {
+                "type": "streamable-http",
+                "url": "https://<your-app>.<region>.azurecontainerapps.io/mcp"
+                }
+            }
+        }
+        ```
+*Key takeaway:*
+- Inside the container: your MCP process binds to port 8001 (and you document that with EXPOSE 8001).
+- Outside (Azure Container Apps): ingress always listens on the standard HTTP/S ports. You map that public 80/443 → your container 8001. Clients never need to know about 8001.
+References- Docker EXPOSE is just documentation, not a public binding. You publish with -p (or let ACA’s ingress do it).
+
+
+## MCP clients
+### Azure AI Agents
+
 # Example use case
 prompts
 ```markdown
